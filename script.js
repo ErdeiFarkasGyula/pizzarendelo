@@ -50,3 +50,35 @@ function renderToppings() {
         `)
         .join('');
 }
+
+
+function calculatePrice() {
+    const size = document.querySelector('input[name="size"]:checked').value;
+    const sauceId = parseInt(document.querySelector('input[name="sauce"]:checked').value);
+    const quantity = parseInt(document.getElementById('quantity').value) || 1;
+
+    const basePriceWithSize = pizzaData.basePrices[size] + pizzaData.sizePrices[size];
+    
+    const sauce = pizzaData.sauces.find(s => s.id === sauceId);
+    const saucePrice = sauce ? sauce.price : 0;
+
+    const selectedToppings = document.querySelectorAll('input[name="topping"]:checked');
+    let toppingsPrice = 0;
+
+    selectedToppings.forEach(checkbox => {
+        const toppingId = parseInt(checkbox.value);
+        const topping = pizzaData.toppings.find(t => t.id === toppingId);
+        if (topping) {
+            toppingsPrice += topping.price;
+        }
+    });
+
+    const pizzaPrice = basePriceWithSize + saucePrice + toppingsPrice;
+    const totalPrice = pizzaPrice * quantity;
+
+    document.getElementById('pizzaPrice').textContent = pizzaPrice.toLocaleString('hu-HU') + ' Ft';
+    document.getElementById('quantityDisplay').textContent = quantity + ' db';
+    document.getElementById('totalPrice').textContent = totalPrice.toLocaleString('hu-HU') + ' Ft';
+
+    return { pizzaPrice, totalPrice, quantity };
+}
