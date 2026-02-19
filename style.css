@@ -1,0 +1,18 @@
+body {
+    background-color: #f0f0f0;
+    padding: 20px;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: flex-start;
+}
+.bar {
+    text-align: center;
+    background-color: #eccef0;
+    margin: 0 10px;
+    border-radius: 10px;
+    height: 550px;
+    width: 300px;
+
+}
