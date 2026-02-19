@@ -13,32 +13,46 @@
         <h1>Pizza Rendelő</h1>
         <div>
             <h2>Méret</h2>
-            <input type="radio" id="kicsi">Kicsi
+            <input type="radio" id="kicsi" name="size">Kicsi
             <br>
-            <input type="radio" id="kozepes">Közepes
+            <input type="radio" id="kozepes" name="size">Közepes
             <br>
-            <input type="radio" id="nagy">Nagy
+            <input type="radio" id="nagy" name="size">Nagy
         </div>
         <div>
             <h2>Feltétek</h2>
-            <input type="radio"  id="paradicsom">Paradicsom
+            <input type="radio" id="paradicsom" name="sauce">Paradicsom
             <br>
-            <input type="radio" id="tejfol">Tejföl
+            <input type="radio" id="tejfol" name="sauce">Tejföl
         </div>
         <div>
             <h2>Feltétek</h2>
-            <input type="checkbox" id="sonka">Sonka
+            <input type="checkbox" id="sonka" name="topping">Sonka
             <br>
-            <input type="checkbox" id="gomba">Gomba
+            <input type="checkbox" id="gomba" name="topping">Gomba
             <br>
-            <input type="checkbox"  id="sajt">Sajt
+            <input type="checkbox" id="sajt" name="topping">Sajt
         </div>
         <button id="rendelGomb">Rendelés</button>
         <p id="osszeg"></p>
     </div>
     <div class="bar">
         <h2>Kosár</h2>
+        <div id="cartItems"></div>
+        <div id="cartTotal">
+            <div id="finalTotal"></div>
+            <button id="orderBtn">Rendelés megtekintése</button>
+            <button id="deleteAllBtn">Kosár törlése</button>
+        </div>
+    </div>
 
+    <div id="orderModal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Rendelés összegzése</h2>
+            <div id="orderSummary"></div>
+            <button onclick="confirmOrder()">Rendelés megerősítése</button>
+        </div>
     </div>
 </body>
 </html>

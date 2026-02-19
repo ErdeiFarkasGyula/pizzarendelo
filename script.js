@@ -22,119 +22,87 @@ const pizzaData = {
 let cart = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-    renderSauces();
-    renderToppings();
     setupEventListeners();
+    calculatePrice();
 });
 
-function renderSauces() {
-    const sauceContainer = document.getElementById('sauceOptions');
-    sauceContainer.innerHTML = pizzaData.sauces
-        .map(sauce => `
-            <label class="radio-option">
-                <input type="radio" name="sauce" value="${sauce.id}" ${sauce.id === 1 ? 'checked' : ''}>
-                <span>${sauce.nev}</span>
-            </label>
-        `)
-        .join('');
-}
-
-function renderToppings() {
-    const toppingContainer = document.getElementById('toppingOptions');
-    toppingContainer.innerHTML = pizzaData.toppings
-        .map(topping => `
-            <label class="checkbox-label">
-                <input type="checkbox" name="topping" value="${topping.id}">
-                <span>${topping.nev} <span class="price-small">(+${topping.ar} Ft)</span></span>
-            </label>
-        `)
-        .join('');
-}
-
-
 function calculatePrice() {
-    const size = document.querySelector('input[name="size"]:checked').value;
-    const sauceId = parseInt(document.querySelector('input[name="sauce"]:checked').value);
-    const quantity = parseInt(document.getElementById('quantity').value) || 1;
-
-    const basePriceWithSize = pizzaData.basePrices[size] + pizzaData.sizePrices[size];
+    const sizeChecked = document.querySelector('input[name="size"]:checked');
+    const sauceChecked = document.querySelector('input[name="sauce"]:checked');
     
-    const sauce = pizzaData.sauces.find(s => s.id === sauceId);
-    const saucePrice = sauce ? sauce.price : 0;
+    if (!sizeChecked || !sauceChecked) return;
 
-    const selectedToppings = document.querySelectorAll('input[name="topping"]:checked');
-    let toppingsPrice = 0;
+    const sizeId = parseInt(sizeChecked.id === 'kicsi' ? '1' : sizeChecked.id === 'kozepes' ? '2' : '3');
+    const sauceId = parseInt(sauceChecked.id === 'paradicsom' ? '1' : '2');
 
-    selectedToppings.forEach(checkbox => {
-        const toppingId = parseInt(checkbox.value);
-        const topping = pizzaData.toppings.find(t => t.id === toppingId);
-        if (topping) {
-            toppingsPrice += topping.price;
-        }
-    });
+    const selectedSize = pizzaData.sizes.find(s => s.id === sizeId);
+    const selectedSauce = pizzaData.sauces.find(s => s.id === sauceId);
 
-    const pizzaPrice = basePriceWithSize + saucePrice + toppingsPrice;
-    const totalPrice = pizzaPrice * quantity;
-
-    document.getElementById('pizzaPrice').textContent = pizzaPrice.toLocaleString('hu-HU') + ' Ft';
-    document.getElementById('quantityDisplay').textContent = quantity + ' db';
-    document.getElementById('totalPrice').textContent = totalPrice.toLocaleString('hu-HU') + ' Ft';
-
-    return { pizzaPrice, totalPrice, quantity };
-}
-
-function setupEventListeners() {
-    document.querySelectorAll('input[name="size"]').forEach(radio => {
-        radio.addEventListener('change', calculatePrice);
-    });
-
-    document.querySelectorAll('input[name="sauce"]').forEach(radio => {
-        radio.addEventListener('change', calculatePrice);
-    });
-
-    document.querySelectorAll('input[name="topping"]').forEach(checkbox => {
-        checkbox.addEventListener('change', calculatePrice);
-    });
-
-    document.getElementById('quantity').addEventListener('change', calculatePrice);
-
-    document.getElementById('addToCartButton').addEventListener('click', addToCart);
-
-    document.getElementById('orderButton').addEventListener('click', showOrderSummary);
-
-    document.getElementById('deleteAllButton').addEventListener('click', deleteAllCart);
-
-    document.querySelector('.closeButton').addEventListener('click', closeModal);
-    document.querySelector('.buttonCancel').addEventListener('click', closeModal);
-    document.querySelector('.buttonConfirm').addEventListener('click', confirmOrder);
-
-    document.getElementById('orderModal').addEventListener('click', (e) => {
-        if (e.target === document.getElementById('orderModal')) {
-            closeModal();
-        }
-    });
-}
-
-function addToCart() {
-    const size = document.querySelector('input[name="size"]:checked').value;
-    const sauceId = parseInt(document.querySelector('input[name="sauce"]:checked').value);
-    const sauce = pizzaData.sauces.find(s => s.id === sauceId);
-
-    const selectedToppings = Array.from(document.querySelectorAll('input[name="topping"]:checked')).map(cb => {
-        const toppingId = parseInt(cb.value);
+    const selectedToppings = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(checkbox => {
+        const toppingId = checkbox.id === 'sonka' ? 2 : checkbox.id === 'gomba' ? 3 : 1;
         return pizzaData.toppings.find(t => t.id === toppingId);
     });
 
-    const { pizzaPrice, quantity } = calculatePrice();
+    let toppingsPrice = 0;
+    selectedToppings.forEach(topping => {
+        if (topping) toppingsPrice += topping.ar;
+    });
+
+    const pizzaPrice = pizzaData.basePrice + selectedSize.ar + selectedSauce.ar + toppingsPrice;
+
+    document.getElementById('osszeg').textContent = 'Ár: ' + pizzaPrice.toLocaleString('hu-HU') + ' Ft';
+
+    return { pizzaPrice, selectedSize, selectedSauce, selectedToppings };
+}
+
+function setupEventListeners() {
+    document.getElementById('kicsi').addEventListener('change', calculatePrice);
+    document.getElementById('kozepes').addEventListener('change', calculatePrice);
+    document.getElementById('nagy').addEventListener('change', calculatePrice);
+
+    document.getElementById('paradicsom').addEventListener('change', calculatePrice);
+    document.getElementById('tejfol').addEventListener('change', calculatePrice);
+
+    document.getElementById('sonka').addEventListener('change', calculatePrice);
+    document.getElementById('gomba').addEventListener('change', calculatePrice);
+    document.getElementById('sajt').addEventListener('change', calculatePrice);
+
+    document.getElementById('rendelGomb').addEventListener('click', addToCart);
+    document.getElementById('orderBtn').addEventListener('click', showOrderSummary);
+    document.getElementById('deleteAllBtn').addEventListener('click', deleteAllCart);
+}
+
+function addToCart() {
+    const sizeChecked = document.querySelector('input[name="size"]:checked');
+    const sauceChecked = document.querySelector('input[name="sauce"]:checked');
+    
+    if (!sizeChecked || !sauceChecked) {
+        showNotification('Kérlek válassz méretet és szószt!');
+        return;
+    }
+
+    const sizeId = parseInt(sizeChecked.id === 'kicsi' ? '1' : sizeChecked.id === 'kozepes' ? '2' : '3');
+    const sauceId = parseInt(sauceChecked.id === 'paradicsom' ? '1' : '2');
+
+    const selectedSize = pizzaData.sizes.find(s => s.id === sizeId);
+    const selectedSauce = pizzaData.sauces.find(s => s.id === sauceId);
+
+    const selectedToppings = Array.from(document.querySelectorAll('input[name="topping"]:checked')).map(cb => {
+        const toppingId = cb.id === 'sonka' ? 2 : cb.id === 'gomba' ? 3 : 1;
+        return pizzaData.toppings.find(t => t.id === toppingId);
+    });
+
+    const priceData = calculatePrice();
+    const quantity = 1;
 
     const cartItem = {
         id: Date.now(),
-        size,
-        sauce,
+        size: selectedSize.nev,
+        sauce: selectedSauce,
         toppings: selectedToppings,
-        pizzaPrice,
+        pizzaPrice: priceData.pizzaPrice,
         quantity,
-        totalPrice: pizzaPrice * quantity
+        totalPrice: priceData.pizzaPrice * quantity
     };
 
     cart.push(cartItem);
@@ -163,8 +131,8 @@ function renderCart() {
                 <div class="item-details">
                     <div class="item-name">${item.size} méretű pizza</div>
                     <div class="item-specs">
-                        <span><strong>Szósz:</strong> ${item.sauce.name}</span><br>
-                        <span><strong>Feltét:</strong> ${item.toppings.length > 0 ? item.toppings.map(t => t.name).join(', ') : 'Csak sajt'}</span>
+                        <span><strong>Szósz:</strong> ${item.sauce.nev}</span><br>
+                        <span><strong>Feltét:</strong> ${item.toppings.length > 0 ? item.toppings.map(t => t.nev).join(', ') : 'Csak sajt'}</span>
                     </div>
                     <div class="item-specs">
                         <span><strong>Darabszám:</strong> ${item.quantity} db</span>
@@ -210,8 +178,8 @@ function showOrderSummary() {
             <div class="summary-item">
                 <div class="summary-item-name">${index + 1}. Pizza - ${item.size} méret</div>
                 <div class="summary-item-details">
-                    <strong>Szósz:</strong> ${item.sauce.name}<br>
-                    <strong>Feltét:</strong> ${item.toppings.length > 0 ? item.toppings.map(t => t.name).join(', ') : 'Csak sajt'}<br>
+                    <strong>Szósz:</strong> ${item.sauce.nev}<br>
+                    <strong>Feltét:</strong> ${item.toppings.length > 0 ? item.toppings.map(t => t.nev).join(', ') : 'Csak sajt'}<br>
                     <strong>Darabszám:</strong> ${item.quantity} db
                 </div>
                 <div class="summary-item-price">${item.totalPrice.toLocaleString('hu-HU')} Ft</div>
